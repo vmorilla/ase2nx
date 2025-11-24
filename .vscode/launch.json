@@ -1,0 +1,48 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/src/main.ts",
+            "args": [
+                // "-s",
+                // "../next-point/src/",
+                // "-a",
+                // "../next-point/assets/",
+                // "-b",
+                // "28",
+                // "../next-point/assets/sprites/ball.aseprite",
+                //
+                // "-t",
+                // "../next-point/assets/tiledefs.bin",
+                // "-c",
+                // "../next-point/assets/palettes.bin",
+                // "-m",
+                // "fonts/balloon.map",
+                // "../next-point/assets/fonts/tiles.aseprite",
+                //
+                // "-t",
+                // "../next-point/assets/menu-tiledefs.bin",
+                // "-c",
+                // "../next-point/assets/menu-palettes.bin",
+                // "../next-point/assets/fonts/menu.aseprite",
+                //
+                "-l",
+                "../next-point/assets/court.ly2.bank_",
+                "../next-point/assets/layer2/court-london.aseprite"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ]
+        }
+    ]
+}
