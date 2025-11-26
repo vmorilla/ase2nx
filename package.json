@@ -4,7 +4,7 @@
     "main": "index.js",
     "scripts": {
         "start": "ts-node src/main.ts",
-        "build": "esbuild src/main.ts --bundle --platform=node --outfile=dist/ase2next.js --banner:js=\"#!/usr/bin/env node\" && chmod 755 dist/ase2next.js",
+        "build": "esbuild src/main.ts --bundle --platform=node --outfile=dist/ase2nx.js --banner:js=\"#!/usr/bin/env node\" && chmod 755 dist/ase2nx.js",
         "dist": "pkg .",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
@@ -24,7 +24,7 @@
         "sharp": "^0.33.5"
     },
     "bin": {
-        "ase2next": "./dist/main.js"
+        "ase2nx": "./dist/main.js"
     },
     "pkg": {
         "scripts": "dist/**/*.js",

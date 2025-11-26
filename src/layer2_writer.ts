@@ -4,18 +4,10 @@ import fs from "fs";
 import sharp from "sharp";
 
 
-export async function writeLayer2(sprite: Sprite, layer2Prefix: string, frameNumber: number = 0): Promise<void> {
-    // Assumes one layer... gets first cel
-    // Restricted to first cel
+export function writeLayer2(sprite: Sprite, outputFile: string, frameNumber: number = 0) {
     const cel = sprite.layers[0].cels[frameNumber];
     const buffer = celBitmap(cel);
-    const bankSize = 16384;
-    for (let bank = 0; bank < buffer.length / bankSize; bank++) {
-        const stream = fs.createWriteStream(`${layer2Prefix}.bank_${bank}.ly2`);
-        stream.write(buffer.subarray(bank * bankSize, Math.min((bank + 1) * bankSize, buffer.length)));
-    }
-
-    //await writeToPng(buffer, cel.canvasHeight, cel.canvasWidth, layer2Prefix + ".png");
+    fs.writeFileSync(outputFile, buffer);
 }
 
 async function writeToPng(buffer: Buffer, width: number, height: number, outputPath: string): Promise<void> {

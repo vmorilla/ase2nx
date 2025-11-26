@@ -4,13 +4,19 @@ A utility to convert Aseprite files to various ZX Spectrum Next formats includin
 
 ## Overview
 
-ASE2NEXT processes Aseprite (.ase/.aseprite) files and converts them to formats compatible with ZX Spectrum Next development:
+ase2nx processes Aseprite (.ase/.aseprite) files and converts them to formats compatible with ZX Spectrum Next development:
 
 - **Sprites**: Converts Aseprite layers to Next hardware sprites
 - **Fonts**: Extracts character sets from tilesets for text display
 - **Maps**: Converts tilemaps to binary formats usable in Next games
 - **Layer 2 Graphics**: Converts image data to Layer 2 format
 
+## File format
+
+### Layer 2
+
+### Sprites
+(see next-point/docs/LOADER.md)
 
 ## Author
 Created by Victor Morilla and licensed under the terms of the [GNU General Public License v3.0 (GPL-3.0)](LICENSE).

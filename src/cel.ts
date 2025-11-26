@@ -1,5 +1,6 @@
 import { nextColor256 } from "./colors";
-import { Cel, RGBAColor, Tile, TileRef } from "./sprite";
+import { celOffset } from "./framedef_file";
+import { Cel, Point, RGBAColor, Tile, TileRef } from "./sprite";
 
 export function celNumberOfPatterns(cel: Cel): number {
     const patternIndexes = new Set(cel.tilemap.map(tileRef => tileRef.tile.tileIndex));
@@ -78,23 +79,37 @@ function spriteNextAttrs(tileRef: TileRef): Buffer {
  * Returns the buffer of attributes and the buffer of sprite patterns (not duplicated) used by the cel. The pattern 
  * and tile attribute that corresponds to the anchor is always the first one.
  * This way, pattern indexes can be relative to the anchor tile.
+ * 
  * @param cel 
- * @param maxSprites Maximum number of sprites in the skin. It is used to fill in the remain attributes with invisible sprites
  * @param colorFn 
  * @returns 
  */
-export function celSpriteAttrsAndPatterns(cel: Cel, maxSprites: number, colorFn = nextColor256()): [Buffer, Buffer] {
+export function celSpriteAttrsAndPatterns(cel: Cel, refPoint: Point, colorFn = nextColor256()): Buffer {
+
     const tileSize = 16 * 16;
     const anchor = tilemapAnchor(cel);
 
     const tiles = cel.tilemap.map(tileref => tileref.tile) as Tile<RGBAColor>[];
+
     // Discard tiles referenced multiple times. First one is the anchor
     const noDupTiles = tiles.reduce((acc, tile) => acc.find(t => t.tileIndex === tile.tileIndex) ? acc : [...acc, tile], [anchor.tile as Tile<RGBAColor>]);
 
-    const patternsBuffer = Buffer.alloc(noDupTiles.length * tileSize);
+    const frameDescriptionSize = 4 + tiles.length * 5 + noDupTiles.length * tileSize;
+    const buffer = Buffer.alloc(frameDescriptionSize);
+
+    buffer.writeUInt8(tiles.length, 0); // Number of tiles (number of individual sprites)
+    buffer.writeUInt8(noDupTiles.length, 1); // Number of patterns
+
+    const [offsetX, offsetY] = celOffset(cel, refPoint);
+    buffer.writeInt8(offsetX, 2); // Offset X
+    buffer.writeInt8(offsetY, 3); // Offset Y
+
+    const spriteAttrsStart = 4;
+    const patternsStart = 4 + cel.tilemap.length * 5;
+
     for (const [index, tile] of noDupTiles.entries()) {
         for (let i = 0; i < tileSize; i++)
-            patternsBuffer.writeUInt8(colorFn(tile.content[i]), index * tileSize + i);
+            buffer.writeUInt8(colorFn(tile.content[i]), index * tileSize + i + patternsStart);
     }
 
     const tileRemapping = new Map(noDupTiles.map((tile, index) => [tile.tileIndex, index]));
@@ -106,14 +121,15 @@ export function celSpriteAttrsAndPatterns(cel: Cel, maxSprites: number, colorFn 
         tile: { ...tileref.tile, tileIndex: tileRemapping.get(tileref.tile.tileIndex)! }
     }));
 
-    const attrsBuffer = remappedTilemap.reduce((acc_buffer, tileRef) => Buffer.concat(
-        [acc_buffer, spriteNextAttrs(tileRef)]), Buffer.alloc(0));
 
-    // Fill the rest of the buffer with empty sprites
-    const fill: Buffer[] = Array(maxSprites - remappedTilemap.length).fill(emptySprite);
-    const attrsBufferWithFill = Buffer.concat([attrsBuffer, ...fill]);
+    for (const [index, tileRef] of remappedTilemap.entries()) {
+        const attrsBuffer = spriteNextAttrs(tileRef);
+        for (let i = 0; i < 5; i++)
+            buffer.writeUInt8(attrsBuffer.readUInt8(i), spriteAttrsStart + index * 5 + i);
+    }
 
-    return [attrsBufferWithFill, patternsBuffer];
+    return buffer;
+
 }
 
 

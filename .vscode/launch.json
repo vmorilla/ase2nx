@@ -13,32 +13,15 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/src/main.ts",
+            "runtimeArgs": [
+                "-r",
+                "ts-node/register"
+            ],
             "args": [
-                // "-s",
-                // "../next-point/src/",
-                // "-a",
-                // "../next-point/assets/",
-                // "-b",
-                // "28",
-                // "../next-point/assets/sprites/ball.aseprite",
-                //
-                // "-t",
-                // "../next-point/assets/tiledefs.bin",
-                // "-c",
-                // "../next-point/assets/palettes.bin",
-                // "-m",
-                // "fonts/balloon.map",
-                // "../next-point/assets/fonts/tiles.aseprite",
-                //
-                // "-t",
-                // "../next-point/assets/menu-tiledefs.bin",
-                // "-c",
-                // "../next-point/assets/menu-palettes.bin",
-                // "../next-point/assets/fonts/menu.aseprite",
-                //
-                "-l",
-                "../next-point/assets/court.ly2.bank_",
-                "../next-point/assets/layer2/court-london.aseprite"
+                // "layer2",
+                // "../next-point/assets/layer2/court-london.aseprite"
+                "sprite",
+                "../next-point/assets/sprites/sharapova.aseprite"
             ],
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
