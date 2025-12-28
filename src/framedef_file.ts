@@ -11,10 +11,20 @@ import { celNumberOfPatterns, celSpriteAttrsAndPatterns, tilemapAnchor } from ".
  */
 export function writeFrameDefinitions(sprite: Sprite, outputFile: string, refPoint: Point) {
     const layer = sprite.layers[0];
-    const bufferStart = Buffer.alloc(1);
-    bufferStart.writeUInt8(layer.cels.length, 0); // Number of frames
+
+    const maxNPatterns = layer.cels.reduce((max, cel) => Math.max(max, celNumberOfPatterns(cel)), 0);
+    const maxNSprites = layer.cels.reduce((max, cel) => Math.max(max, cel.tilemap.length), 0);
+
+    const bufferStart = Buffer.alloc(3);
+
+    bufferStart.writeUInt8(maxNSprites, 0); // Max number of sprites
+    bufferStart.writeUInt8(maxNPatterns, 1); // Max number of patterns
+    bufferStart.writeUInt8(layer.cels.length, 2); // Number of frames
+
     const buffer = layer.cels.reduce((acc, cel) => Buffer.concat([acc, celSpriteAttrsAndPatterns(cel, refPoint)]), bufferStart);
     fs.writeFileSync(outputFile, buffer);
+
+    console.log(`Definition length: ${3 + 3 * layer.cels.length}`);
 }
 
 interface FrameDefData {

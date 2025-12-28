@@ -1,10 +1,8 @@
 import { Command } from "commander";
 import { loadSprite, Point, Tileset } from "./sprite";
 import { writeTileDefinitions } from "./tiledefs_writer";
-import { writePalettes } from "./palettes_writer";
 import { writeFrameDefinitions } from "./framedef_file";
 import { writeLayer2 } from "./layer2_writer";
-import { writeBalloonMap } from "./balloon";
 import packageJson from "../package.json";
 
 interface Options {
@@ -48,40 +46,12 @@ function cmdSprite(inputFile: string, options: { output?: string, verbose: boole
     writeFrameDefinitions(sprite, output, ReferencePoint.BottomCenter);
 }
 
-
-
-
-// async function main(options: Options, inputFiles: string[]) {
-
-//     const sprites = inputFiles.map(file => loadSprite(file));
-
-//     if (options.bank || options.assetsDir || options.sourcesDir) {
-//         if (!options.bank || !options.assetsDir || !options.sourcesDir) {
-//             throw new Error("Bank, assets directory and sources directory must be specified together");
-//         }
-//         // Write sprite definitions mode
-//         writeFrameDefinitions(sprites, options.bank, options.sourcesDir, options.assetsDir, ReferencePoint.BottomCenter);
-//         console.log(`Wrote sprite definitions starting in bank ${options.bank}`);
-
-//     }
-
-//     const tileDefinitionsFile = options.writeTileDefinitions;
-//     if (tileDefinitionsFile !== undefined) {
-//         const layers = sprites.flatMap(sprite => sprite.layers);
-//         const tilesets = layers.filter(layer => layer.tileset).map(layer => layer.tileset) as Tileset[];
-//         await writeTileDefinitions(tilesets, tileDefinitionsFile);
-//         if (options.balloonMap !== undefined) {
-//             await writeBalloonMap(sprites[0], options.balloonMap); // Ad hoc call to get the balloon map
-//         }
-//     }
-
-//     const palettesFile = options.writePalettes;
-//     if (palettesFile !== undefined) {
-//         await writePalettes(sprites, palettesFile);
-//     }
-
-//     return 0;
-// }
+function cmdTileDefs(inputFile: string, options: { output: string }) {
+    const sprite = loadSprite(inputFile);
+    const layers = sprite.layers.filter(layer => layer.tileset) as { tileset: Tileset }[];
+    const tilesets = layers.map(layer => layer.tileset);
+    writeTileDefinitions(tilesets, options.output);
+}
 
 // Initialize commander
 const program = new Command();
@@ -108,12 +78,19 @@ const commandSprite = new Command("sprite")
     .argument('<input>', 'Input Aseprite file')
     .action(cmdSprite);
 
+const commandTileDefs = new Command("tiledefs")
+    .description("Export tile definitions from Aseprite file.")
+    .option("-o --output <output>", "Name of output binary file.")
+    .argument('<input>', 'Input Aseprite file')
+    .action(cmdTileDefs);
+
 program
     .name(packageJson.name)
     .version(packageJson.version)
     .addCommand(commandLayer2)
     .addCommand(commandFrames)
     .addCommand(commandSprite)
+    .addCommand(commandTileDefs)
     // .option('-s, --sources-dir <dir>', 'Output directory for source files (.c, .asm and .h)')
     // .option('-a, --assets-dir <dir>', 'Output directory for asset files')
     // .option('-b, --bank <number>', 'Starting 8k bank number for sprite assets')
