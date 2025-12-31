@@ -30,11 +30,13 @@
                 // "pramprem.bm",
                 // "../pramprem/assets/logo/pramprem.aseprite"
                 "tilemap",
-                "-w",
-                "40",
                 "-o",
                 "tilemap{frame}.tm",
                 "../pramprem/assets/logo/pramprem.aseprite"
+                // "palette",
+                // "-o",
+                // "palettes.pal",
+                // "../pramprem/assets/logo/pramprem.aseprite"
             ],
             "outFiles": [
                 "${workspaceFolder}/**/*.js"

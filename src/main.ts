@@ -6,6 +6,7 @@ import { writeLayer2 } from "./layer2_writer";
 import packageJson from "../package.json";
 import { writeBitmap } from "./bitmap";
 import { writeTileMaps } from "./tilemap";
+import { writePalettes } from "./palettes_writer";
 
 interface Options {
     sourcesDir?: string;
@@ -81,6 +82,11 @@ function cmdTileMap(inputFile: string, options: { output: string, width?: number
     writeTileMaps(layer.cels, width, height, options.output);
 }
 
+async function cmdPalette(inputFile: string, options: { output: string }) {
+    const sprite = loadSprite(inputFile);
+    await writePalettes([sprite], options.output);
+}
+
 
 // Output files in some commands are prepared to substitute {frame} with the frame number
 // e.g., tilemap_{frame}.tm
@@ -131,6 +137,12 @@ const commandTileMap = new Command("tilemap")
     .argument('<input>', 'Input Aseprite file')
     .action(cmdTileMap);
 
+const commandPalette = new Command("palette")
+    .description("Export palettes from Aseprite file.")
+    .option("-o --output <output>", "Name of output palette file.")
+    .argument('<input>', 'Input Aseprite file')
+    .action(cmdPalette);
+
 program
     .name(packageJson.name)
     .version(packageJson.version)
@@ -140,5 +152,6 @@ program
     .addCommand(commandTileDefs)
     .addCommand(commandBitmap)
     .addCommand(commandTileMap)
+    .addCommand(commandPalette)
     .parse(process.argv);
 
