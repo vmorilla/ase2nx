@@ -16,7 +16,7 @@ export async function writePalettes(sprites: Sprite[], palettesFile: string, col
         stream.write(serializePalette(palette, colorFn));
     }
     await stream.end();
-    console.log(`Tile definitions have been written to ${palettesFile}`);
+    console.log(`Palette colors have been written to ${palettesFile}`);
 
 }
 

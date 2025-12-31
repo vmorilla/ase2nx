@@ -24,7 +24,7 @@
         "sharp": "^0.33.5"
     },
     "bin": {
-        "ase2nx": "./dist/main.js"
+        "ase2nx": "./dist/ase2nx.js"
     },
     "pkg": {
         "scripts": "dist/**/*.js",
