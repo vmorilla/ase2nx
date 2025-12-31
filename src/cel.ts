@@ -1,6 +1,6 @@
-import { nextColor256 } from "./colors";
+import { ColorFn, nextColor256 } from "./colors";
 import { celOffset } from "./framedef_file";
-import { Cel, Point, RGBAColor, Tile, TileRef } from "./sprite";
+import { AnyTile, Cel, IndexColor, Point, RGBAColor, Tile, TileRef } from "./sprite";
 
 export function celNumberOfPatterns(cel: Cel): number {
     const patternIndexes = new Set(cel.tilemap.map(tileRef => tileRef.tile.tileIndex));
@@ -133,4 +133,30 @@ export function celSpriteAttrsAndPatterns(cel: Cel, refPoint: Point, colorFn = n
 }
 
 
+export function celGetPixel(cel: Cel, x: number, y: number, colorFn: ColorFn): number {
+    if (x >= cel.canvasWidth || y >= cel.canvasHeight || x < 0 || y < 0) {
+        throw new Error(`Pixel coordinates (${x}, ${y}) are out of bounds for cel of size ${cel.canvasWidth}x${cel.canvasHeight}`);
+    }
+
+    const tileWidth = cel.canvasWidth / cel.width;
+    const tileHeight = cel.canvasHeight / cel.height;
+
+    const xTile = Math.floor(x / tileWidth);
+    const yTile = Math.floor(y / tileHeight);
+
+    const tileRef = cel.tilemap.find(t => t.x === xTile && t.y === yTile);
+    if (!tileRef) {
+        return 0;
+    } else {
+        const tile = tileRef.tile as AnyTile;
+        const pixel = tile.content[(x % tileWidth) + (y % tileHeight) * tileWidth];
+        console.log(`Pixel at (${x}, ${y}) in tile (${xTile}, ${yTile}) is of type ${typeof pixel}`);
+        if (typeof pixel === 'number') {
+            return pixel;
+        }
+        else {
+            return colorFn(pixel);
+        }
+    }
+}
 

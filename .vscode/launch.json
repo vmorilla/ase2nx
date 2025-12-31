@@ -20,8 +20,21 @@
             "args": [
                 // "layer2",
                 // "../next-point/assets/layer2/court-london.aseprite"
-                "sprite",
-                "../next-point/assets/sprites/sharapova.aseprite"
+                // "tiledef",
+                // "-o",
+                // "tiledef.td",
+                // "../pramprem/assets/logo/pramprem.aseprite"
+                // "bitmap",
+                // "-c",
+                // "-o",
+                // "pramprem.bm",
+                // "../pramprem/assets/logo/pramprem.aseprite"
+                "tilemap",
+                "-w",
+                "40",
+                "-o",
+                "tilemap{frame}.tm",
+                "../pramprem/assets/logo/pramprem.aseprite"
             ],
             "outFiles": [
                 "${workspaceFolder}/**/*.js"

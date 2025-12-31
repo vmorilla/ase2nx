@@ -4,6 +4,8 @@ import { writeTileDefinitions } from "./tiledefs_writer";
 import { writeFrameDefinitions } from "./framedef_file";
 import { writeLayer2 } from "./layer2_writer";
 import packageJson from "../package.json";
+import { writeBitmap } from "./bitmap";
+import { writeTileMaps } from "./tilemap";
 
 interface Options {
     sourcesDir?: string;
@@ -53,6 +55,36 @@ function cmdTileDefs(inputFile: string, options: { output: string }) {
     writeTileDefinitions(tilesets, options.output);
 }
 
+function cmdBitmap(inputFile: string, options: { output: string, columnar: boolean }) {
+    const sprite = loadSprite(inputFile);
+
+    writeBitmap(sprite, options.output, options.columnar);
+}
+
+function cmdTileMap(inputFile: string, options: { output: string, width?: number, height?: number }) {
+    const sprite = loadSprite(inputFile);
+    const layer = sprite.layers.find(l => l.tileset != null);
+    if (!layer) {
+        console.error("No layer with tileset found in the sprite.");
+        return;
+    }
+
+    const tileset = layer.tileset!;
+    if (tileset.width != 8 || tileset.height != 8) {
+        console.error("Tilemap export only supports 8x8 tiles.");
+        return;
+    }
+
+    const width = options.width ?? layer.cels[0].canvasWidth / tileset.width;
+    const height = options.height ?? layer.cels[0].canvasHeight / tileset.height;
+
+    writeTileMaps(layer.cels, width, height, options.output);
+}
+
+
+// Output files in some commands are prepared to substitute {frame} with the frame number
+// e.g., tilemap_{frame}.tm
+
 // Initialize commander
 const program = new Command();
 
@@ -78,11 +110,26 @@ const commandSprite = new Command("sprite")
     .argument('<input>', 'Input Aseprite file')
     .action(cmdSprite);
 
-const commandTileDefs = new Command("tiledefs")
+const commandTileDefs = new Command("tiledef")
     .description("Export tile definitions from Aseprite file.")
     .option("-o --output <output>", "Name of output binary file.")
     .argument('<input>', 'Input Aseprite file')
     .action(cmdTileDefs);
+
+const commandBitmap = new Command("bitmap")
+    .description("Exports a bitmap for layer2 from Aseprite file.")
+    .option("-o --output <output>", "Name of output bitmap file.")
+    .option("-c --columnar", "Export bitmap in columnar format for layer 320x256 mode.", false)
+    .argument('<input>', 'Input Aseprite file')
+    .action(cmdBitmap);
+
+const commandTileMap = new Command("tilemap")
+    .description("Exports the tilemap / tilemaps")
+    .option("-o --output <output>", "Name of output tilemap file.")
+    .option("-w --width <width>", "Force the width of the tilemap")
+    .option("-h --height <height>", "Force the height of the tilemap")
+    .argument('<input>', 'Input Aseprite file')
+    .action(cmdTileMap);
 
 program
     .name(packageJson.name)
@@ -91,12 +138,7 @@ program
     .addCommand(commandFrames)
     .addCommand(commandSprite)
     .addCommand(commandTileDefs)
-    // .option('-s, --sources-dir <dir>', 'Output directory for source files (.c, .asm and .h)')
-    // .option('-a, --assets-dir <dir>', 'Output directory for asset files')
-    // .option('-b, --bank <number>', 'Starting 8k bank number for sprite assets')
-    // .option('-t, --write-tile-definitions <file>', 'Write tile definitions to binary file')
-    // .option('-c, --write-palettes <file>', 'Write palettes to binary file')
-    // .option('-l, --layer2-prefix <prefix>', 'Write layer2 files using the provided prefix')
-    // .option('-m, --balloon-map <file>', 'Write balloon map to binary file')
+    .addCommand(commandBitmap)
+    .addCommand(commandTileMap)
     .parse(process.argv);
 
