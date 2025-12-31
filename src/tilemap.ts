@@ -35,7 +35,15 @@ function writeTileMap(cel: Cel, outputWidth: number, outputHeight: number): Buff
             if (tileX === -1 || tileY === -1) {
                 tilemapBuffer.writeUInt16LE(0, offset); // Empty tile
             } else {
-                tilemapBuffer.writeUInt16LE(cel.tilemap[tileX + tileY * mapWidth].tile.tileIndex, offset);
+
+                const tileRef = cel.tilemap.find(t => t.x === tileX && t.y === tileY);
+                if (!tileRef) {
+                    tilemapBuffer.writeUInt16LE(0, offset);
+                }
+                else {
+                    const index = tileRef.tile.tileIndex + 1 + (tileRef.xFlip ? 0x800 : 0) + (tileRef.yFlip ? 0x400 : 0) + (tileRef.rotation ? 0x200 : 0);
+                    tilemapBuffer.writeUInt16LE(index, offset);
+                }
             }
         }
     }
