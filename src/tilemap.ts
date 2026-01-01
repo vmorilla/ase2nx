@@ -24,6 +24,8 @@ export function writeTileMaps(cels: Cel[], width: number, height: number, output
 function writeTileMap(cel: Cel, outputWidth: number, outputHeight: number): Buffer {
     const mapWidth = cel.canvasWidth / 8;
     const mapHeight = cel.canvasHeight / 8;
+    const celXOffset = cel.xPos / 8;
+    const celYOffset = cel.yPos / 8;
 
     const tilemapBuffer = Buffer.alloc(outputWidth * outputHeight * 2);
 
@@ -36,7 +38,7 @@ function writeTileMap(cel: Cel, outputWidth: number, outputHeight: number): Buff
                 tilemapBuffer.writeUInt16LE(0, offset); // Empty tile
             } else {
 
-                const tileRef = cel.tilemap.find(t => t.x === tileX && t.y === tileY);
+                const tileRef = cel.tilemap.find(t => t.x + celXOffset === tileX && t.y + celYOffset === tileY);
                 if (!tileRef) {
                     tilemapBuffer.writeUInt16LE(0, offset);
                 }

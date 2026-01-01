@@ -31,7 +31,7 @@
                 // "../pramprem/assets/logo/pramprem.aseprite"
                 "tilemap",
                 "-o",
-                "tilemap{frame}.tm",
+                "tilemap.tm",
                 "../pramprem/assets/logo/pramprem.aseprite"
                 // "palette",
                 // "-o",
