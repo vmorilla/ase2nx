@@ -38,7 +38,7 @@ export function tilemapAnchor(cel: Cel): TileRef {
 const emptySprite = Buffer.alloc(5);
 emptySprite.fill(0).writeUInt8(0x40, 3);
 
-function spriteNextAttrs(tileRef: TileRef): Buffer {
+function spriteNextAttrs(tileRef: TileRef, absolutePattern = false): Buffer {
     const buffer = Buffer.alloc(5);
     const isAnchor = tileRef.x === 0 && tileRef.y === 0;
 
@@ -66,7 +66,9 @@ function spriteNextAttrs(tileRef: TileRef): Buffer {
     buffer.writeUInt8(attr3, 3);
 
     // Attr 4
-    const attr4bit0 = isAnchor ? (tileRef.y & 0x100) >> 8 : 1; // Y MSB or relative pattern
+    // For relative sprites, bit 0 = 1 means the pattern is an offset over the anchor's pattern;
+    // 0 means the 6-bit pattern of attr 3 is an absolute index (used by pooled skins)
+    const attr4bit0 = isAnchor ? (tileRef.y & 0x100) >> 8 : (absolutePattern ? 0 : 1); // Y MSB or relative pattern
     // Bits 1 to 4 are set to 0 (no scale)
     const attr4bit5 = isAnchor ? 0x20 : 0x00; // Big sprite
     const attr4bit6 = isAnchor ? 0x00 : 0x40; // No collision detection
@@ -132,6 +134,47 @@ export function celSpriteAttrsAndPatterns(cel: Cel, refPoint: Point, colorFn = n
 
 }
 
+
+/**
+ * Returns the buffer of attributes of a cel remapped against a shared pattern pool
+ * (see writePooledFrameDefinitions). The frame carries no patterns (nPatterns = 0):
+ * every tile references its pattern with an absolute index in the pool, so the whole
+ * pool can stay resident in the sprite pattern memory and frame changes only need to
+ * re-upload attributes.
+ *
+ * The anchor tile is still emitted first and the other tiles are relative to it, but
+ * their patterns are absolute (attr 4 bit 0 = 0) since the anchor's pattern is not
+ * necessarily the same across frames.
+ */
+export function celSpriteAttrsPooled(cel: Cel, refPoint: Point, poolIndex: Map<AnyTile, number>): Buffer {
+
+    const anchor = tilemapAnchor(cel);
+
+    const buffer = Buffer.alloc(4 + cel.tilemap.length * 5);
+
+    buffer.writeUInt8(cel.tilemap.length, 0); // Number of tiles (number of individual sprites)
+    buffer.writeUInt8(0, 1); // No patterns: they live in the shared pool frames
+
+    const [offsetX, offsetY] = celOffset(cel, refPoint);
+    buffer.writeInt8(offsetX, 2); // Offset X
+    buffer.writeInt8(offsetY, 3); // Offset Y
+
+    const reorderedTilemap = [anchor, ...cel.tilemap.filter(tr => tr !== anchor)];
+    const remappedTilemap: Array<TileRef> = reorderedTilemap.map(tileref => ({
+        ...tileref,
+        x: tileref.x - anchor.x,
+        y: tileref.y - anchor.y,
+        tile: { ...tileref.tile, tileIndex: poolIndex.get(tileref.tile)! }
+    }));
+
+    for (const [index, tileRef] of remappedTilemap.entries()) {
+        const attrsBuffer = spriteNextAttrs(tileRef, true);
+        for (let i = 0; i < 5; i++)
+            buffer.writeUInt8(attrsBuffer.readUInt8(i), 4 + index * 5 + i);
+    }
+
+    return buffer;
+}
 
 export function celGetPixel(cel: Cel, x: number, y: number, colorFn: ColorFn): number {
     if (x >= cel.canvasWidth || y >= cel.canvasHeight || x < 0 || y < 0) {
