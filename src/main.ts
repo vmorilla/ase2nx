@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { loadSprite, Point, Tileset } from "./sprite";
 import { writeTileDefinitions } from "./tiledefs_writer";
-import { writeFrameDefinitions } from "./framedef_file";
+import { writeFrameDefinitions, writePooledFrameDefinitions } from "./framedef_file";
 import { writeLayer2 } from "./layer2_writer";
 import packageJson from "../package.json";
 import { writeBitmap } from "./bitmap";
@@ -41,12 +41,15 @@ function cmdLayer2(inputFile: string, options: { output?: string, verbose: boole
     }
 }
 
-function cmdSprite(inputFile: string, options: { output?: string, verbose: boolean }) {
+function cmdSprite(inputFile: string, options: { output?: string, verbose: boolean, pooled: boolean }) {
     const output = options.output ?? inputFile.replace(/\.(ase|aseprite)$/, ".sp");
     const sprite = loadSprite(inputFile);
 
     // Write sprite definitions mode
-    writeFrameDefinitions(sprite, output, ReferencePoint.BottomCenter);
+    if (options.pooled)
+        writePooledFrameDefinitions(sprite, output, ReferencePoint.BottomCenter);
+    else
+        writeFrameDefinitions(sprite, output, ReferencePoint.BottomCenter);
 }
 
 function cmdTileDefs(inputFile: string, options: { output: string }) {
@@ -112,6 +115,7 @@ const commandFrames = new Command("frames")
 const commandSprite = new Command("sprite")
     .description("Export the file as sprite frames")
     .option("-o --output <output>", "Name of output file/s.")
+    .option("-p --pooled", "De-duplicate the patterns of all frames into a shared resident pool (attribute-only frames + pattern-only pool frames)", false)
     .option("-v --verbose", "Enable verbose output", false)
     .argument('<input>', 'Input Aseprite file')
     .action(cmdSprite);
